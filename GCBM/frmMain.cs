@@ -2780,13 +2780,6 @@ public partial class frmMain : Form
         tbSearch.KeyPress += CheckEnterKeyPress;
         Text = "GameCube Backup Manager 2022 - " + VERSION() + " - 64-bit";
 
-        //Splash Screen
-        //if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "DisableSplash") == false)
-
-        //    Load += HandleFormLoad;
-
-        callback(Resources.SplashNetworkCheck, 10);
-        NetworkCheck();
         if (!sio.File.Exists(INI_FILE))
         {
             Program.DefaultConfigSave();
@@ -2797,7 +2790,14 @@ public partial class frmMain : Form
             InitializeComponent();
         }
 
-        if (!CONFIG_INI_FILE.IniReadBool("SEVERAL", "LaunchedOnce")) Program.DefaultConfigSave();
+        //Splash Screen
+        //if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "DisableSplash") == false)
+        //    Load += HandleFormLoad;
+
+        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "LaunchedOnce", true);
+
+        callback(Resources.SplashNetworkCheck, 10);
+        NetworkCheck();
 
         LoadConfigFile();
         AboutTranslator();
