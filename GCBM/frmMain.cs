@@ -1148,7 +1148,8 @@ public partial class frmMain : Form
     {
         foreach (DataGridViewRow dgvResultRow in dgv.Rows)
         {
-            var _IDGameCode = dgv.Rows[dgvResultRow.Index].Cells[6].Value.ToString();
+            int idColumnIdx = dgv.Columns.Cast<DataGridViewColumn>().Where(col => col.Name == "ID").First().Index;
+            var _IDGameCode = dgv.Rows[dgvResultRow.Index].Cells[idColumnIdx].Value.ToString();
             VerifyGame(_IDGameCode);
 
             //tbLog.AppendText(_IDRegionCode + Environment.NewLine);
@@ -1194,27 +1195,24 @@ public partial class frmMain : Form
             try
             {
                 // Download Disc cover
-                var myLinkCoverDisc = new Uri(@"https://art.gametdb.com/wii/disc/" + LINK_DOMAIN + "/" +
-                                              _IDMakerCode + ".png");
+                var myLinkCoverDisc = new Uri($"https://art.gametdb.com/wii/disc/{LINK_DOMAIN}/{_IDGameCode}.png");
                 var request = (HttpWebRequest)WebRequest.Create(myLinkCoverDisc);
                 request.Method = "HEAD";
                 NET_RESPONSE = (HttpWebResponse)request.GetResponse();
 
                 if (NET_RESPONSE.StatusCode == HttpStatusCode.OK)
                 {
-                    tbLog.AppendText("[" + DateString() + "]" + Resources.DownloadDiscCover + _IDMakerCode +
-                                     ".png" + Environment.NewLine);
+                    tbLog.AppendText($"[{DateString()}]{Resources.DownloadDiscCover}{_IDGameCode}.png" + Environment.NewLine);
                     NET_CLIENT.DownloadFileAsync(myLinkCoverDisc,
-                        GET_CURRENT_PATH + COVERS_DIR + sio.Path.DirectorySeparatorChar + LINK_DOMAIN +
-                        sio.Path.DirectorySeparatorChar + "disc" + sio.Path.DirectorySeparatorChar + _IDMakerCode +
-                        ".png");
+                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "disc", _IDGameCode, ".png"));
                     while (NET_CLIENT.IsBusy) Application.DoEvents();
                 }
             }
             catch (WebException ex)
             {
-                tbLog.AppendText("[" + DateString() + "]" + Resources.DownloadDiscCoverError + Environment.NewLine +
-                                 Resources.Error + ex.Message + Environment.NewLine);
+                tbLog.AppendText($"[{DateString()}]{Resources.DownloadDiscCoverError}" + Environment.NewLine);
+                tbLog.AppendText($"{Resources.Error}{ex.Message}" + Environment.NewLine);
+                tbLog.AppendText(ex.Response.ResponseUri.ToString() + Environment.NewLine);
                 tbLog.AppendText(ex.StackTrace);
             }
             finally
@@ -1222,59 +1220,27 @@ public partial class frmMain : Form
                 if (NET_RESPONSE != null) NET_RESPONSE.Close();
             }
 
-            //try
-            //{
-            //    // Download Disc cover
-            //    Uri myLinkCoverDisc = new Uri(@"https://art.gametdb.com/wii/disc/" + LINK_DOMAIN + "/" + _IDMakerCode + ".png");
-            //    var request = (HttpWebRequest)WebRequest.Create(myLinkCoverDisc);
-            //    request.Method = "HEAD";
-            //    NET_RESPONSE = (HttpWebResponse)request.GetResponse();
-
-            //    if (NET_RESPONSE.StatusCode == HttpStatusCode.OK)
-            //    {
-            //        tbLog.AppendText("[" + DateString() + "]" + GCBM.Properties.Resources.DownloadDiscCover + _IDMakerCode + ".png" + Environment.NewLine);
-            //        NET_CLIENT.DownloadFileAsync(myLinkCoverDisc, GET_CURRENT_PATH + COVERS_DIR + sio.Path.DirectorySeparatorChar + LINK_DOMAIN + sio.Path.DirectorySeparatorChar + "disc" + sio.Path.DirectorySeparatorChar + _IDMakerCode + ".png");
-            //        while (NET_CLIENT.IsBusy) { Application.DoEvents(); }
-            //    }
-            //}
-            //catch (WebException ex)
-            //{
-            //    tbLog.AppendText("[" + DateString() + "]" + GCBM.Properties.Resources.DownloadDiscCoverError + Environment.NewLine +
-            //        GCBM.Properties.Resources.Error + ex.Message + Environment.NewLine);
-            //    tbLob.AppendText(ex.StackTrace);
-            //}
-            //finally
-            //{
-            //    if (NET_RESPONSE != null)
-            //    {
-            //        NET_RESPONSE.Close();
-            //    }
-            //}
-
             try
             {
                 // Download 3D cover
-                var myLinkCover3D = new Uri(@"https://art.gametdb.com/wii/cover3D/" + LINK_DOMAIN + "/" +
-                                            _IDMakerCode + ".png");
+                var myLinkCover3D = new Uri($"https://art.gametdb.com/wii/cover3D/{LINK_DOMAIN}/{_IDGameCode}.png");
                 var request3D = (HttpWebRequest)WebRequest.Create(myLinkCover3D);
                 request3D.Method = "HEAD";
                 NET_RESPONSE = (HttpWebResponse)request3D.GetResponse();
 
                 if (NET_RESPONSE.StatusCode == HttpStatusCode.OK)
                 {
-                    tbLog.AppendText("[" + DateString() + "]" + Resources.Download3DCover + _IDMakerCode + ".png" +
-                                     Environment.NewLine);
+                    tbLog.AppendText($"[{DateString()}]{Resources.Download3DCover}{_IDGameCode}.png" + Environment.NewLine);
                     NET_CLIENT.DownloadFileAsync(myLinkCover3D,
-                        GET_CURRENT_PATH + COVERS_DIR + sio.Path.DirectorySeparatorChar + LINK_DOMAIN +
-                        sio.Path.DirectorySeparatorChar + "3d" + sio.Path.DirectorySeparatorChar + _IDMakerCode +
-                        ".png");
+                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "3d", _IDGameCode, ".png"));
                     while (NET_CLIENT.IsBusy) Application.DoEvents();
                 }
             }
             catch (WebException ex)
             {
-                tbLog.AppendText("[" + DateString() + "]" + Resources.Download3DCoverError + Environment.NewLine +
-                                 Resources.Error + ex.Message + Environment.NewLine);
+                tbLog.AppendText($"[{DateString()}]{Resources.Download3DCoverError}" + Environment.NewLine);
+                tbLog.AppendText($"{Resources.Error}{ex.Message}" + Environment.NewLine);
+                tbLog.AppendText(ex.Response.ResponseUri.ToString() + Environment.NewLine);
                 tbLog.AppendText(ex.StackTrace);
             }
             finally
