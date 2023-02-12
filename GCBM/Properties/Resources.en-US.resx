@@ -511,7 +511,7 @@
     <value>[ERROR] Could not open image file.</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip not found, would you like to download it now?</value>
+    <value>WiiTDB.xml not found, would you like to download it now?</value>
   </data>
   <data name="SplashNetworkCheck" xml:space="preserve">
     <value>Checking for internet connection...</value>

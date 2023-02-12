@@ -247,7 +247,7 @@
     <value>&gt;&gt; 状态。工作中...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>没有找到WiiTDB.zip，你想现在下载吗？</value>
+    <value>没有找到WiiTDB.xml，你想现在下载吗？</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>检测到的文件系统是。</value>

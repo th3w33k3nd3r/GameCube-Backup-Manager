@@ -74,47 +74,18 @@ internal static class Program
         //Busca os processos com este nome que estão em execução
         var processos = Process.GetProcessesByName(nomeProcesso);
 
-        if (File.Exists("config.ini"))
+        // TODO: Validate if this is still a problem
+        // We changed the variable that stores the selected language from an int to the culture string, this causes a crash when we try
+        // to call CurrentUICulture = new CultureInfo(0)... etc. So we have to make sure that either they have a working/upated INI file.
+        // Chosen to do this by presenting the user a new LanguagePrompt form, which will also appear upon first launch, If no supported language has been found.
+
+        if (File.Exists("config.ini") && ConfigFile.IniReadBool("SEVERAL", "MultipleInstances") == false && processos.Length > 1)
         {
-            //We changed the variable that stores the selected language from an int to the culture string, this causes a crash when we try
-            //to call CurrentUICulture = new CultureInfo(0)... etc. So we have to make sure that either they have a working/upated INI file.
-            //Chosen to do this by presenting the user a new LanguagePrompt form, which will also appear upon first launch, If no supported language has been found.
-            if (ConfigFile.IniReadBool("SEVERAL", "MultipleInstances") == false)
-            {
-                //Pega o nome do processo deste programa
-                //string nomeProcesso = Process.GetCurrentProcess().ProcessName;
-                //Busca os processos com este nome que estão em execução
-                //Process[] processos = Process.GetProcessesByName(nomeProcesso);
-                //Se já houver um aberto
-                if (processos.Length > 1)
-                {
-                    _ = MessageBox.Show(Resources.CannotOpenTwoInstances, "GameCube Backup Manager",
-                        MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    Application.Exit();
-                }
-                else
-                {
-                    Start();
-                }
-            }
-            else
-            {
-                Start();
-            }
+            _ = MessageBox.Show(Resources.CannotOpenTwoInstances, "GameCube Backup Manager",
+                MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            Application.Exit();
         }
-        else
-        {
-            if (processos.Length > 1)
-            {
-                _ = MessageBox.Show(Resources.CannotOpenTwoInstances, "GameCube Backup Manager", MessageBoxButtons.OK,
-                    MessageBoxIcon.Exclamation);
-                Application.Exit();
-            }
-            else
-            {
-                Start();
-            }
-        }
+        Start();
     }
 
     public static void DefaultConfigSave()

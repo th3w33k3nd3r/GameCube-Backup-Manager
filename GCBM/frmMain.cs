@@ -484,52 +484,51 @@ public partial class frmMain : Form
     {
         if (!Monitor.TryEnter(lvDatabase)) return;
 
-        if (sio.File.Exists(WIITDB_FILE))
-            if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "LoadDatabase"))
-                // PERFECT - DO NOT CHANGE!!!
-                tabMainDatabase.BeginInvoke(new Action(() =>
+        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "LoadDatabase"))
+            // PERFECT - DO NOT CHANGE!!!
+            tabMainDatabase.BeginInvoke(new Action(() =>
+            {
+                try
                 {
-                    try
+                    lvDatabase.View = View.Details;
+                    lvDatabase.GridLines = true;
+                    lvDatabase.FullRowSelect = true;
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_IDGameCode, 70);
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_GameTitle, 210);
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Region, 70);
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Type, 80);
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Developer, 200);
+                    _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Editor, 200);
+
+                    using var ds = new DataSet();
+                    _ = ds.ReadXml(WIITDB_FILE);
+
+                    foreach (DataRow dr in ds.Tables["game"].Rows)
                     {
-                        lvDatabase.View = View.Details;
-                        lvDatabase.GridLines = true;
-                        lvDatabase.FullRowSelect = true;
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_IDGameCode, 70);
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_GameTitle, 210);
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Region, 70);
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Type, 80);
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Developer, 200);
-                        _ = lvDatabase.Columns.Add(Resources.LoadDatabase_Editor, 200);
-
-                        using var ds = new DataSet();
-                        _ = ds.ReadXml(WIITDB_FILE);
-
-                        foreach (DataRow dr in ds.Tables["game"].Rows)
+                        var itemXml = new ListViewItem(new[]
                         {
-                            var itemXml = new ListViewItem(new[]
-                            {
-                                dr["id"].ToString(),
-                                dr["name"].ToString(),
-                                dr["region"].ToString(),
-                                dr["type"].ToString(),
-                                dr["developer"].ToString(),
-                                dr["publisher"].ToString()
-                            });
+                            dr["id"].ToString(),
+                            dr["name"].ToString(),
+                            dr["region"].ToString(),
+                            dr["type"].ToString(),
+                            dr["developer"].ToString(),
+                            dr["publisher"].ToString()
+                        });
 
-                            _ = lvDatabase.Items.Add(itemXml);
-                        }
-
-                        foreach (DataRow dr in ds.Tables["WiiTDB"].Rows) lblDatabaseTotal.Text = dr["games"] + " Total";
-
-                        ds.Dispose();
-                        ds.Clear();
+                        _ = lvDatabase.Items.Add(itemXml);
                     }
-                    catch (Exception ex)
-                    {
-                        //CheckWiiTdbXml();
-                        GlobalNotifications(ex.Message, ToolTipIcon.Error);
-                    }
-                }));
+
+                    foreach (DataRow dr in ds.Tables["WiiTDB"].Rows) lblDatabaseTotal.Text = dr["games"] + " Total";
+
+                    ds.Dispose();
+                    ds.Clear();
+                }
+                catch (Exception ex)
+                {
+                    // TODO: GlobalNotificatons does nothing?
+                    GlobalNotifications(ex.Message, ToolTipIcon.Error);
+                }
+            }));
 
         Monitor.Exit(lvDatabase);
     }
@@ -2043,7 +2042,7 @@ public partial class frmMain : Form
             }
             else
             {
-                CheckWiiTdbXml();
+                NotifyMissingWiiTDB();
             }
         }
     }
@@ -2132,7 +2131,7 @@ public partial class frmMain : Form
             }
             else
             {
-                CheckWiiTdbXml();
+                NotifyMissingWiiTDB();
             }
         }
     }
@@ -2646,7 +2645,7 @@ public partial class frmMain : Form
                     }
                     else
                     {
-                        CheckWiiTdbXml();
+                        NotifyMissingWiiTDB();
                     }
                 }
 
@@ -2803,13 +2802,13 @@ public partial class frmMain : Form
         AboutTranslator();
         callback(Resources.SplashPopulatingDrives, 20);
         var progressCheckpoint = 20;
-        GetAllDrives(s => callback(Resources.SplashFoundDrive + " " + s, progressCheckpoint += 5));
+        _ = GetAllDrives(s => callback(Resources.SplashFoundDrive + " " + s, progressCheckpoint += 5));
         //callback(Resources.SplashDirectories,progressCheckpoint);
 
         //DetectOSLanguage();
         //AdjustLanguage();
         //UpdateProgram();
-        //LoadDatabaseXML();
+
         DisabeScreensaver();
         SetupLog();
         RequiredDirectories(i => callback(Resources.SplashDirectories, i),
@@ -2819,25 +2818,24 @@ public partial class frmMain : Form
         cbFilterDatabase.SelectedIndex = 0;
 
         //Check for WiiTDB file and internet connection, download if not found and we're online
-
         callback(Resources.SplashWiiTDB, 90);
-        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "LoadDatabase"))
+        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "LoadDatabase") && CONFIG_INI_FILE.IniReadBool("SEVERAL", "NetVerify"))
         {
-            if (!sio.File.Exists(WIITDB_FILE) && NetworkInterface.GetIsNetworkAvailable())
+            if (!sio.File.Exists(WIITDB_FILE))
             {
-                //frmDownloadGameTDB frmDownload = new frmDownloadGameTDB();
-                //_ = frmDownload.ShowDialog();
-                Show();
-                CheckAndDownloadWiiTdbXml();
-            }
-            else if (!sio.File.Exists(WIITDB_FILE) && !NetworkInterface.GetIsNetworkAvailable())
-            {
-                MessageBox.Show(Resources.NoInternetConnectionFound_String1 + Environment.NewLine +
-                                Resources.NoInternetConnectionFound_String2,
-                    Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (NetworkInterface.GetIsNetworkAvailable())
+                {
+                    Show();
+                    PromptToDownloadWiiTDB();
+                }
+                else
+                {
+                    MessageBox.Show(Resources.NoInternetConnectionFound_String1 + Environment.NewLine +
+                                    Resources.NoInternetConnectionFound_String2,
+                        Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
-        //LoadDatabaseXML();
 
         // DISABLED
         DisableOptions();
@@ -2897,14 +2895,6 @@ public partial class frmMain : Form
         tsmiBurnMedia.Visible = false;
         tsmiManageApp.Visible = false;
         tsmiCreatePackage.Visible = false;
-    }
-
-    //Is this function not referenced?
-    //How does it work? Phantom function? :P
-    protected override void OnLoad(EventArgs e)
-    {
-        //base.OnLoad(e);
-        notifyIcon.Visible = true;
     }
 
     private void PopDgv()
@@ -4142,51 +4132,33 @@ public partial class frmMain : Form
 
     /// <summary>
     /// </summary>
-    private async void CheckAndDownloadWiiTdbXml()
+    private async void PromptToDownloadWiiTDB()
     {
-        if (sio.File.Exists(WIITDB_FILE)) return;
+        if (!Monitor.TryEnter(lvDatabase)) Process.GetCurrentProcess().Kill();
 
-        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "NetVerify"))
+        //frmDownloadGameTDB.GameTDBAsynchronous();
+        //await ProcessTaskDelay();
+        //Monitor.Exit(lvDatabase);
+
+        //Ask the user via Dialog if they want to download, if Yes, run a new frmDownloadGameTDB in a task, and wait for it to finish
+        Show();
+        Activate();
+        var result = MessageBox.Show(Resources.AskDownloadWiiTDB, Resources.ProcessTaskDelay_String1,
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (result == DialogResult.Yes)
         {
-            if (!Monitor.TryEnter(lvDatabase)) Process.GetCurrentProcess().Kill();
+            var dl = new frmDownloadGameTDB();
+            dl.ShowDialog();
+            await Delay(5000).ConfigureAwait(false);
 
-            //frmDownloadGameTDB.GameTDBAsynchronous();
-            //await ProcessTaskDelay();
-            //Monitor.Exit(lvDatabase);
-
-            //Ask the user via Dialog if they want to download, if Yes, run a new frmDownloadGameTDB in a task, and wait for it to finish
-            Show();
-            Activate();
-            var result = MessageBox.Show(Resources.AskDownloadWiiTDB, Resources.ProcessTaskDelay_String1,
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (result == DialogResult.Yes)
-            {
-                var dl = new frmDownloadGameTDB();
-                dl.ShowDialog();
-                await Delay(5000).ConfigureAwait(false);
-            }
-
-            if (sio.File.Exists(WIITDB_FILE))
-            {
-                try
-                {
-                    LoadDatabaseXML();
-                }
-                catch (Exception ex)
-                {
-                    _ = MessageBox.Show(ex.Message, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-                return;
-            }
+            if (!sio.File.Exists(WIITDB_FILE))
+                NotifyMissingWiiTDB();
         }
-
-        CheckWiiTdbXml();
     }
 
     /// <summary>
     /// </summary>
-    private async void CheckWiiTdbXml()
+    private async void NotifyMissingWiiTDB()
     {
         await ProcessTaskDelay().ConfigureAwait(false);
         _ = MessageBox.Show(Resources.ProcessTaskDelay_String1 + Environment.NewLine +

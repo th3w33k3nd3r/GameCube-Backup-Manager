@@ -247,7 +247,7 @@
     <value>&gt;&gt; Status: Bekerja...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip tidak ditemukan, apakah Anda ingin mengunduhnya sekarang?</value>
+    <value>WiiTDB.xml tidak ditemukan, apakah Anda ingin mengunduhnya sekarang?</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>Sistem berkas yang terdeteksi adalah:</value>

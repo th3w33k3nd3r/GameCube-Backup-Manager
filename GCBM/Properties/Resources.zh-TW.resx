@@ -139,7 +139,7 @@
     <value>已成功刪除所有檔案！</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>找不到 WiiTDB.zip，是否下載？</value>
+    <value>找不到 WiiTDB.xml，是否下載？</value>
   </data>
   <data name="AssemblyInfo_Description" xml:space="preserve">
     <value>Nintendo GameCube ISO 及 GCM 檔案管理器。</value>

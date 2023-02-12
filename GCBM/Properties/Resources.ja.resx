@@ -247,7 +247,7 @@
     <value>&gt;&gt; ステータス作業中...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip が見つかりません、今すぐダウンロードしますか？</value>
+    <value>WiiTDB.xml が見つかりません、今すぐダウンロードしますか？</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>検出されたファイルシステムは</value>

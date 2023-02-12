@@ -247,7 +247,7 @@
     <value>&gt;&gt; Állapot: Állapot: Munka...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip nem található, szeretné letölteni most?</value>
+    <value>WiiTDB.xml nem található, szeretné letölteni most?</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>Az észlelt fájlrendszer a következő:</value>

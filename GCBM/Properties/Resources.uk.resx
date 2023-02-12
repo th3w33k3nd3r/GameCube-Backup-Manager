@@ -247,7 +247,7 @@
     <value>&gt;&gt; Статус: Працюю...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip не знайдено, хочете завантажити зараз?</value>
+    <value>WiiTDB.xml не знайдено, хочете завантажити зараз?</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>Виявлена файлова система:</value>

@@ -511,7 +511,7 @@
     <value>[오류] 이미지 파일을 열 수 없습니다.</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip을 찾을 수 없습니다. 지금 다운로드하시겠습니까?</value>
+    <value>WiiTDB.xml을 찾을 수 없습니다. 지금 다운로드하시겠습니까?</value>
   </data>
   <data name="SplashNetworkCheck" xml:space="preserve">
     <value>인터넷 연결 확인 중...</value>

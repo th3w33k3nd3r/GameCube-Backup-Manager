@@ -247,7 +247,7 @@
     <value>&gt;&gt; Statut : En cours...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip n'a pas été trouvé, voulez-vous le télécharger maintenant ?</value>
+    <value>WiiTDB.xml n'a pas été trouvé, voulez-vous le télécharger maintenant ?</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>Le système de fichiers détecté est :</value>

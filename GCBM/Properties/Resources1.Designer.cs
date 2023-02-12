@@ -173,7 +173,7 @@ namespace GCBM.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WiiTDB.zip não encontrado, gostaria de baixá-lo agora?.
+        ///   Looks up a localized string similar to WiiTDB.xml não encontrado, gostaria de baixá-lo agora?.
         /// </summary>
         internal static string AskDownloadWiiTDB {
             get {

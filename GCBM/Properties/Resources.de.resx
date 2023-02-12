@@ -247,7 +247,7 @@
     <value>&gt;&gt; Status: In Arbeit...</value>
   </data>
   <data name="AskDownloadWiiTDB" xml:space="preserve">
-    <value>WiiTDB.zip nicht gefunden, möchten Sie es jetzt herunterladen?</value>
+    <value>WiiTDB.xml nicht gefunden, möchten Sie es jetzt herunterladen?</value>
   </data>
   <data name="InvalidDrive_String2" xml:space="preserve">
     <value>Das erkannte Dateisystem ist:</value>
