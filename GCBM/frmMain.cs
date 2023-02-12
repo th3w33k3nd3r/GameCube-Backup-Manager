@@ -1203,7 +1203,7 @@ public partial class frmMain : Form
                 {
                     tbLog.AppendText($"[{DateString()}]{Resources.DownloadDiscCover}{_IDGameCode}.png" + Environment.NewLine);
                     NET_CLIENT.DownloadFileAsync(myLinkCoverDisc,
-                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "disc", _IDGameCode, ".png"));
+                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "disc", $"{_IDGameCode}.png"));
                     while (NET_CLIENT.IsBusy) Application.DoEvents();
                 }
             }
@@ -1212,7 +1212,7 @@ public partial class frmMain : Form
                 tbLog.AppendText($"[{DateString()}]{Resources.DownloadDiscCoverError}" + Environment.NewLine);
                 tbLog.AppendText($"{Resources.Error}{ex.Message}" + Environment.NewLine);
                 tbLog.AppendText(ex.Response.ResponseUri.ToString() + Environment.NewLine);
-                tbLog.AppendText(ex.StackTrace);
+                tbLog.AppendText(ex.StackTrace + Environment.NewLine);
             }
             finally
             {
@@ -1231,7 +1231,7 @@ public partial class frmMain : Form
                 {
                     tbLog.AppendText($"[{DateString()}]{Resources.Download3DCover}{_IDGameCode}.png" + Environment.NewLine);
                     NET_CLIENT.DownloadFileAsync(myLinkCover3D,
-                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "3d", _IDGameCode, ".png"));
+                        sio.Path.Combine(GET_CURRENT_PATH + COVERS_DIR, LINK_DOMAIN, "3d", $"{_IDGameCode}.png"));
                     while (NET_CLIENT.IsBusy) Application.DoEvents();
                 }
             }
@@ -1240,7 +1240,7 @@ public partial class frmMain : Form
                 tbLog.AppendText($"[{DateString()}]{Resources.Download3DCoverError}" + Environment.NewLine);
                 tbLog.AppendText($"{Resources.Error}{ex.Message}" + Environment.NewLine);
                 tbLog.AppendText(ex.Response.ResponseUri.ToString() + Environment.NewLine);
-                tbLog.AppendText(ex.StackTrace);
+                tbLog.AppendText(ex.StackTrace + Environment.NewLine);
             }
             finally
             {
