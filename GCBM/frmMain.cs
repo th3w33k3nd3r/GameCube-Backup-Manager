@@ -559,6 +559,7 @@ public partial class frmMain : Form
     /// </summary>
     private async void ReloadDataGridViewGameList(DataGridView dgv, Dictionary<int, Game> dGames)
     {
+        // TODO: Show artwork of entry after load (initial scan and after artwork download)
         if (SCANNING)
             return;
         if (dgv == dgvSource)
@@ -1143,8 +1144,40 @@ public partial class frmMain : Form
     /// <summary>
     ///     Only downloads Disc and 3D files from listed ISO/GCM files.
     /// </summary>
-    private void DownloadOnlyDisc3DCover(ICollection<Game> games)
+    private void DownloadOnlyDisc3DCover(bool all)
     {
+        DataGridView dgv;
+        IEnumerable<Game> games;
+
+        if (!CONFIG_INI_FILE.IniReadBool("SEVERAL", "NetVerify"))
+        {
+            GlobalNotifications(Resources.NoInternetConnectionFound_String1 + Environment.NewLine +
+                                Resources.NoInternetConnectionFound_String2, ToolTipIcon.Info);
+            return;  // TODO: Proper message
+        }
+
+        if (tabControlMain.SelectedIndex == tabMainFile.TabIndex)
+        {
+            dgv = dgvSource;
+            games = dSourceGames.Values;
+        }
+        else if (tabControlMain.SelectedIndex == tabMainDisc.TabIndex)
+        {
+            dgv = dgvDestination;
+            games = dDestGames.Values;
+        }
+        else
+        {
+            Debug.Print("Not on source or destination tab");  // TODO: Handle other
+            return;
+        }
+
+        if (!all)  // Filter for selected IDs (NOTE: dgv.SelectedRows refers to highlighted rows not the checkbox)
+        {
+            IEnumerable<string> checkedIDs = dgv.Rows.Cast<DataGridViewRow>().Where(row => (bool)row.Cells["Checked"].Value).Select(row => row.Cells["ID"].Value.ToString());
+            games = games.Where(game => checkedIDs.Contains(game.ID));
+        }
+
         foreach (Game game in games)
         {
             switch (game.IDRegionCode)
@@ -1153,7 +1186,7 @@ public partial class frmMain : Form
                     LINK_DOMAIN = "US";
                     break;
                 case "p": // EUROPE - ALL
-                case "r": // EUROPE - RUSSIA                   
+                case "r": // EUROPE - RUSSIA
                     LINK_DOMAIN = "EN";
                     break;
                 case "j": // ASIA - JAPAN
@@ -1235,129 +1268,6 @@ public partial class frmMain : Form
                 tbLog.AppendText($"{Resources.Error}{ex.Message}" + Environment.NewLine);
                 tbLog.AppendText(ex.Response.ResponseUri.ToString() + Environment.NewLine);
                 tbLog.AppendText(ex.StackTrace + Environment.NewLine);
-            }
-            finally
-            {
-                if (NET_RESPONSE != null) NET_RESPONSE.Close();
-            }
-        }
-    }
-
-    #endregion
-
-    // REWRITE FUNCTION - Download Only Disc & 3D Cover Selected Game
-
-    #region Download Only Disc & 3D Cover Selected Game
-
-    /// <summary>
-    ///     Downloads Disc and 3D files from the selected ISO/GCM file only.
-    /// </summary>
-    private void DownloadOnlyDisc3DCoverSelectedGame(DataGridView dgv)
-    {
-        var _selectedGameRowCount = dgv.Rows.GetRowCount(DataGridViewElementStates.Selected);
-
-        if (_selectedGameRowCount == 0)
-        {
-            SelectGameFromList();
-        }
-        else
-        {
-            switch (_IDRegionCode)
-            {
-                case "e": // AMERICA - USA
-                    LINK_DOMAIN = "US";
-                    break;
-                case "p": // EUROPE - ALL
-                case "r": // EUROPE - RUSSIA                   
-                    LINK_DOMAIN = "EN";
-                    break;
-                case "j": // ASIA - JAPAN
-                case "t": // ASIA - TAIWAN
-                case "k": // ASIA - KOREA
-                    LINK_DOMAIN = "JA";
-                    break;
-                case "d": // EUROPE - GERMANY
-                    LINK_DOMAIN = "DE";
-                    break;
-                case "s": // EUROPE - SPAIN
-                    LINK_DOMAIN = "ES";
-                    break;
-                case "i": // EUROPE - ITALY
-                    LINK_DOMAIN = "IT";
-                    break;
-                case "u": // AUSTRALIA
-                    LINK_DOMAIN = "AU";
-                    break;
-                case "y": // EUROPE - Netherlands ???
-                    LINK_DOMAIN = "NL";
-                    break;
-                case "f": // EUROPE - FRANCE
-                    LINK_DOMAIN = "FR";
-                    break;
-                default:
-                    LINK_DOMAIN = "US";
-                    //GlobalNotifications(GCBM.Properties.Resources.UnknownRegion, ToolTipIcon.Info);
-                    break;
-            }
-
-            try
-            {
-                // Download Disc cover
-                var myLinkCoverDisc = new Uri(@"https://art.gametdb.com/wii/disc/" + LINK_DOMAIN + "/" +
-                                              _IDMakerCode + ".png");
-                var request = (HttpWebRequest)WebRequest.Create(myLinkCoverDisc);
-                request.Method = "HEAD";
-                NET_RESPONSE = (HttpWebResponse)request.GetResponse();
-
-                if (NET_RESPONSE.StatusCode == HttpStatusCode.OK)
-                {
-                    tbLog.AppendText("[" + DateString() + "]" + Resources.DownloadDiscCover + _IDMakerCode +
-                                     ".png" + Environment.NewLine);
-                    NET_CLIENT.DownloadFileAsync(myLinkCoverDisc,
-                        GET_CURRENT_PATH + COVERS_DIR + sio.Path.DirectorySeparatorChar + LINK_DOMAIN +
-                        sio.Path.DirectorySeparatorChar + "disc" + sio.Path.DirectorySeparatorChar + _IDMakerCode +
-                        ".png");
-                    while (NET_CLIENT.IsBusy) Application.DoEvents();
-                }
-            }
-            catch (WebException ex)
-            {
-                //MessageBox.Show("ARQUIVO: " + _netResponse.ToString() + " not found!");
-                tbLog.AppendText("[" + DateString() + "]" + Resources.DownloadDiscCoverError + Environment.NewLine +
-                                 "[" + DateString() + "]" + Resources.Error + ex.Message + Environment.NewLine);
-                tbLog.AppendText(ex.StackTrace);
-            }
-            finally
-            {
-                if (NET_RESPONSE != null) NET_RESPONSE.Close();
-            }
-
-            try
-            {
-                // Download 3D cover
-                var myLinkCover3D = new Uri(@"https://art.gametdb.com/wii/cover3D/" + LINK_DOMAIN + "/" +
-                                            _IDMakerCode + ".png");
-                var request3D = (HttpWebRequest)WebRequest.Create(myLinkCover3D);
-                request3D.Method = "HEAD";
-                NET_RESPONSE = (HttpWebResponse)request3D.GetResponse();
-
-                if (NET_RESPONSE.StatusCode == HttpStatusCode.OK)
-                {
-                    tbLog.AppendText("[" + DateString() + "]" + Resources.Download3DCover + _IDMakerCode + ".png" +
-                                     Environment.NewLine);
-                    NET_CLIENT.DownloadFileAsync(myLinkCover3D,
-                        GET_CURRENT_PATH + COVERS_DIR + sio.Path.DirectorySeparatorChar + LINK_DOMAIN +
-                        sio.Path.DirectorySeparatorChar + "3d" + sio.Path.DirectorySeparatorChar + _IDMakerCode +
-                        ".png");
-                    while (NET_CLIENT.IsBusy) Application.DoEvents();
-                }
-            }
-            catch (WebException ex)
-            {
-                //MessageBox.Show("ARQUIVO: " + _netResponse.ToString() + " not found!");
-                tbLog.AppendText("[" + DateString() + "]" + Resources.Download3DCoverError + Environment.NewLine +
-                                 "[" + DateString() + "]" + Resources.Error + ex.Message + Environment.NewLine);
-                tbLog.AppendText(ex.StackTrace);
             }
             finally
             {
@@ -1721,16 +1631,16 @@ public partial class frmMain : Form
 
         if (dgv.RowCount == 0)
         {
-            EmptyGamesList();
+            PromptGamesListIsEmpty();
         }
         else
         {
             if (_selectedRowCount == 0)
-                SelectGameFromList();
+                PromptSelectGameFromList();
             else
                 try
                 {
-                    if (DialogResultDeleteGame() == DialogResult.Yes)
+                    if (PromptDeleteGame() == DialogResult.Yes)
                     {
                         LINK_DOMAIN = _IDRegionCode.Equals("e") ? "US" :
                             _IDRegionCode.Equals("p") ? "EN" :
@@ -1804,11 +1714,11 @@ public partial class frmMain : Form
         string[] filters = { "iso", "gcm" };
 
         if (dgv.RowCount == 0)
-            EmptyGamesList();
+            PromptGamesListIsEmpty();
         else
             try
             {
-                if (DialogResultDeleteGame() == DialogResult.Yes)
+                if (PromptDeleteGame() == DialogResult.Yes)
                 {
                     // HERE START DELETING FILES.
                     if (dgv == dgvSource)
@@ -1928,7 +1838,7 @@ public partial class frmMain : Form
         var selectedRowCount = dgv.Rows.GetRowCount(DataGridViewElementStates.Selected);
 
         if (selectedRowCount == 0)
-            SelectGameFromList();
+            PromptSelectGameFromList();
         else
             try
             {
@@ -2024,7 +1934,7 @@ public partial class frmMain : Form
 
         if (_selectedGameRowCount == 0)
         {
-            SelectGameFromList();
+            PromptSelectGameFromList();
         }
         else
         {
@@ -2885,8 +2795,8 @@ public partial class frmMain : Form
 
     private void PopDgv()
     {
-        var cb = new DataGridViewCheckBoxColumn();
-
+        // These column names are referenced elsewhere
+        DataGridViewCheckBoxColumn cb = new() { Name = "Checked", HeaderText = "" };
         dgvSource.Columns.Clear();
         _ = dgvSource.Columns.Add(cb);
         _ = dgvSource.Columns.Add("Title", Resources.LoadDatabase_GameTitle);
@@ -2897,7 +2807,7 @@ public partial class frmMain : Form
         _ = dgvSource.Columns.Add("Path", Resources.DisplayFilesSelected_FilePath);
         dgvSource.Refresh();
 
-        var cbd = new DataGridViewCheckBoxColumn();
+        DataGridViewCheckBoxColumn cbd = new() { Name = "Checked", HeaderText = "" };
         dgvDestination.Columns.Clear();
         _ = dgvDestination.Columns.Add(cbd);
         _ = dgvDestination.Columns.Add("Title", Resources.LoadDatabase_GameTitle);
@@ -2960,13 +2870,13 @@ public partial class frmMain : Form
 
         if (getSelectedGamePaths(dgv).Length == 0)
         {
-            SelectGameFromList();
+            PromptSelectGameFromList();
             return;
         }
 
         if (tscbDiscDrive.SelectedIndex == 0)
         {
-            SelectTargetDrive();
+            PromptSelectTargetDrive();
         }
         else
         {
@@ -3255,7 +3165,7 @@ public partial class frmMain : Form
             int? selectedRowCount = Convert.ToInt32(dgvSource.Rows.GetRowCount(DataGridViewElementStates.Selected));
 
             if (dgvSource.RowCount == 0)
-                EmptyGamesList();
+                PromptGamesListIsEmpty();
             else if (selectedRowCount > 0)
                 try
                 {
@@ -4067,7 +3977,7 @@ public partial class frmMain : Form
     /// <summary>
     ///     Informs if the file list is empty.
     /// </summary>
-    private static void EmptyGamesList()
+    private static void PromptGamesListIsEmpty()
     {
         _ = MessageBox.Show(Resources.EmptyGamesList, Resources.Information, MessageBoxButtons.OK,
             MessageBoxIcon.Exclamation);
@@ -4076,7 +3986,7 @@ public partial class frmMain : Form
     /// <summary>
     ///     Informs if it is necessary to select a game from the list.
     /// </summary>
-    private static void SelectGameFromList()
+    private static void PromptSelectGameFromList()
     {
         _ = MessageBox.Show(Resources.SelectGameFromList, Resources.Information, MessageBoxButtons.OK,
             MessageBoxIcon.Exclamation);
@@ -4084,7 +3994,7 @@ public partial class frmMain : Form
 
     /// <summary>
     /// </summary>
-    private void SelectTargetDrive()
+    private void PromptSelectTargetDrive()
     {
         _ = MessageBox.Show(Resources.SelectTargetDrive, Resources.Information, MessageBoxButtons.OK,
             MessageBoxIcon.Exclamation);
@@ -4095,7 +4005,7 @@ public partial class frmMain : Form
     ///     This procedure is irreversible.
     /// </summary>
     /// <returns></returns>
-    private static DialogResult DialogResultDeleteGame()
+    private static DialogResult PromptDeleteGame()
     {
         var dr = MessageBox.Show(Resources.DialogResultDeleteGame_ReallyDeleteFile_String1 + Environment.NewLine +
                                  Environment.NewLine + Resources.DialogResultDeleteGame_ReallyDeleteFile_String2,
@@ -4513,11 +4423,7 @@ public partial class frmMain : Form
 
     private void tsmiDownloadCoversSelectedGame_Click(object sender, EventArgs e)
     {
-        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "NetVerify"))
-            DownloadOnlyDisc3DCoverSelectedGame(dgvSource);
-        else
-            GlobalNotifications(Resources.NoInternetConnectionFound_String1 + Environment.NewLine +
-                                Resources.NoInternetConnectionFound_String2, ToolTipIcon.Info);
+        DownloadOnlyDisc3DCover(all: false);
     }
 
     #endregion
@@ -4526,18 +4432,7 @@ public partial class frmMain : Form
 
     private void tsmiSyncDownloadDiscOnly3DCovers_Click(object sender, EventArgs e)
     {
-        if (CONFIG_INI_FILE.IniReadBool("SEVERAL", "NetVerify"))
-        {
-            if (tabControlMain.SelectedIndex == tabMainFile.TabIndex)
-                DownloadOnlyDisc3DCover(dSourceGames.Values);
-            else if (tabControlMain.SelectedIndex == tabMainDisc.TabIndex)
-                DownloadOnlyDisc3DCover(dDestGames.Values);
-            else
-                Debug.Print("Not on source or destination tab");  // TODO: Handle other
-        }
-        else
-            GlobalNotifications(Resources.NoInternetConnectionFound_String1 + Environment.NewLine +
-                                Resources.NoInternetConnectionFound_String2, ToolTipIcon.Info);
+        DownloadOnlyDisc3DCover(all: true);
     }
 
     #endregion
@@ -4710,13 +4605,13 @@ public partial class frmMain : Form
 
         if (dgvSource.RowCount == 0)
         {
-            EmptyGamesList();
+            PromptGamesListIsEmpty();
         }
         else
         {
             if (_selectedGameRowCount == 0)
             {
-                SelectGameFromList();
+                PromptSelectGameFromList();
             }
             else
             {
@@ -4870,13 +4765,13 @@ public partial class frmMain : Form
 
         if (dgvSource.RowCount == 0)
         {
-            EmptyGamesList();
+            PromptGamesListIsEmpty();
         }
         else
         {
             if (_selecteGameRowCount == 0)
             {
-                SelectGameFromList();
+                PromptSelectGameFromList();
             }
             else
             {
@@ -4935,7 +4830,7 @@ public partial class frmMain : Form
 
         if (dgvSource.RowCount == 0)
         {
-            EmptyGamesList();
+            PromptGamesListIsEmpty();
         }
         else if (selectedRowCount > 0)
         {
