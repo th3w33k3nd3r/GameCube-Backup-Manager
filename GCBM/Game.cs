@@ -575,7 +575,7 @@ public class Game
 
         game.IDRegionCode = Convert.ToString(ste.Default.GetChars(new[] { bb[3] })[0]).ToLower();
 
-        switch (Convert.ToString(ste.Default.GetChars(new[] { bb[3] })[0]).ToLower())
+        switch (game.IDRegionCode)
         {
             case "e":
                 game.Region = "USA/NTSC-U";
@@ -634,8 +634,6 @@ public class Game
         game.Size = Convert.ToInt32(f.Length);
         game.Path = path;
 
-        br.Close();
-        fs.Close();
         return Task.FromResult(game);
     }
 
