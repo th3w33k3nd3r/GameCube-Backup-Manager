@@ -1,5 +1,8 @@
-#region Using
+namespace GCBM;
 
+using AutoUpdaterDotNET;
+using GCBM.Properties;
+using GCBM.tools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,17 +21,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using AutoUpdaterDotNET;
-using GCBM.Properties;
-using GCBM.tools;
 using static System.Threading.Tasks.Task;
 using sio = System.IO;
 using ste = System.Text.Encoding;
 using Timer = System.Windows.Forms.Timer;
-
-#endregion
-
-namespace GCBM;
 
 public partial class frmMain : Form
 {
@@ -73,27 +69,27 @@ public partial class frmMain : Form
     /// <param name="e"></param>
     private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
     {
-            CLOSING = true;
-            if (notifyIcon != null)
-            {
-                notifyIcon.Visible = false;
-                notifyIcon.Icon = null;
-                notifyIcon.Dispose();
-            }
+        CLOSING = true;
+        if (notifyIcon != null)
+        {
+            notifyIcon.Visible = false;
+            notifyIcon.Icon = null;
+            notifyIcon.Dispose();
+        }
 
-            ClearTemp();
-            ExportLOG(1);
-            if (Process.GetCurrentProcess().GetChildProcesses() != null &&
-                Process.GetCurrentProcess().GetChildProcesses().Count != 0)
-                foreach (var process in Process.GetCurrentProcess().GetChildProcesses())
-                    //Kill GCIT and others
-                    process.Kill();
+        ClearTemp();
+        ExportLOG(1);
+        if (Process.GetCurrentProcess().GetChildProcesses() != null &&
+            Process.GetCurrentProcess().GetChildProcesses().Count != 0)
+            foreach (var process in Process.GetCurrentProcess().GetChildProcesses())
+                //Kill GCIT and others
+                process.Kill();
 
-            //Garbage Collector
-            GC.Collect();
-            //Cleanup any Threads left lying around
-            Dispose();
-            Process.GetCurrentProcess().Kill();
+        //Garbage Collector
+        GC.Collect();
+        //Cleanup any Threads left lying around
+        Dispose();
+        Process.GetCurrentProcess().Kill();
     }
 
     #endregion
@@ -402,7 +398,7 @@ public partial class frmMain : Form
         tsmiSyncDownloadDiscOnly3DCovers.Enabled = true;
         tsmiGameInfo.Enabled = true;
         tsmiTransferDeviceCovers.Enabled = true;
-        dgvSource.Invoke(()=>dgvSource.Enabled = true);
+        dgvSource.Invoke(() => dgvSource.Enabled = true);
         //}));
         //tabMainFile.Update();
         //tabMainDisc.Invoke(() =>

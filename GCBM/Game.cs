@@ -640,20 +640,20 @@ public class Game
     public string getXmlTitle(string id)
     {
         string title = "";
-            if (sio.File.Exists(WIITDB_FILE))
-            {
-                var root = XElement.Load(WIITDB_FILE);
-                IEnumerable<XElement> tests = root.Elements("game").AsParallel()
-                    .Where(el => (string)el.Element("id") == id);
-                foreach (var el in tests) title = (string)el.Element("locale")?.Element("title");
-            }
-            else
-            {
-                CheckWiiTdbXml();
-                title = "error";
-            }
+        if (sio.File.Exists(WIITDB_FILE))
+        {
+            var root = XElement.Load(WIITDB_FILE);
+            IEnumerable<XElement> tests = root.Elements("game").AsParallel()
+                .Where(el => (string)el.Element("id") == id);
+            foreach (var el in tests) title = (string)el.Element("locale")?.Element("title");
+        }
+        else
+        {
+            CheckWiiTdbXml();
+            title = "error";
+        }
 
-            return title;
+        return title;
 
     }
 

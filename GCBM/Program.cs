@@ -1,16 +1,16 @@
 ﻿namespace GCBM;
 
+using GCBM.Properties;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
-using GCBM.Properties;
 
 internal static class Program
 {
-    public static readonly IniFile ConfigFile = new (Path.Combine(".", "config.ini"));
+    public static readonly IniFile ConfigFile = new(Path.Combine(".", "config.ini"));
     public static readonly CultureInfo[] CultureInfos = new[]
     {
         new CultureInfo("en-US"), // English [US]
@@ -173,7 +173,7 @@ internal static class Program
 
     public static void LanguagePrompt()
     {
-        frmLanguagePrompt frmPrompt = new ();
+        frmLanguagePrompt frmPrompt = new();
         frmPrompt.ShowDialog();
     }
     #region Detect OS Language
