@@ -24,8 +24,8 @@ namespace GCBM
         {
             this.Text = Resources.LanguagePromptTitle;
             string sysLang = Program.DetectOSLanguage();
-            
-            foreach (var c in Program.cultureInfos)
+
+            foreach (var c in Program.CultureInfos)
             {
                 cbSupportedCultures.Items.Add(c.NativeName + " [" + c.Name + "]");
             }
@@ -33,14 +33,14 @@ namespace GCBM
 
         private void btnSetLanguage_Click(object sender, EventArgs e)
         {
-            Program.ConfigFile.IniWriteString("LANGUAGE", "ConfigLanguage", Program.cultureInfos[cbSupportedCultures.SelectedIndex].Name);
+            Program.ConfigFile.IniWriteString("LANGUAGE", "ConfigLanguage", Program.CultureInfos[cbSupportedCultures.SelectedIndex].Name);
             this.Dispose();
         }
 
         private void cbSupportedCultures_SelectedIndexChanged(object sender, EventArgs e)
         {
             //Refresh the interface to give the user a preview of the selected language via updating the label text
-            CultureInfo.CurrentUICulture = new CultureInfo(Program.cultureInfos[cbSupportedCultures.SelectedIndex].Name);
+            CultureInfo.CurrentUICulture = new CultureInfo(Program.CultureInfos[cbSupportedCultures.SelectedIndex].Name);
             MessageBox.Show(Resources.LanguagePromptConfirm, Resources.LanguagePromptConfirmTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Refresh();
         }

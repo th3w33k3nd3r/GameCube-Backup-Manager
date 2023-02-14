@@ -1,14 +1,12 @@
-﻿using System;
+﻿namespace GCBM;
+
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace GCBM;
-
 public partial class frmSplashScreen : Form
 {
-    #region Main Form
-
     public frmSplashScreen()
     {
         var configIniFile = Program.ConfigFile;
@@ -27,8 +25,6 @@ public partial class frmSplashScreen : Form
         Program.AdjustLanguage(t);
         t.Start();
     }
-
-    #endregion
 
     #region Adjust Language
 

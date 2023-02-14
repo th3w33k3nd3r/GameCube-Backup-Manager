@@ -1,31 +1,39 @@
-﻿using GCBM.Properties;
+﻿namespace GCBM;
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-
-namespace GCBM;
+using GCBM.Properties;
 
 internal static class Program
 {
-    public static Form SplashScreen;
-    private static Form MainForm;
-    private static readonly string GET_CURRENT_PATH = Directory.GetCurrentDirectory();
-    private static readonly string TEMP_DIR = System.IO.Path.DirectorySeparatorChar + "temp";
+    public static readonly IniFile ConfigFile = new (Path.Combine(".", "config.ini"));
+    public static readonly CultureInfo[] CultureInfos = new[]
+    {
+        new CultureInfo("en-US"), // English [US]
+        new CultureInfo("pt-BR"), // Portuguese
+        new CultureInfo("ko"), // Korean
+        new CultureInfo("es"), // Spanish [Spain]
+        new CultureInfo("es-MX"), // Spanish [Mexico]
+        new CultureInfo("zh"), // Chinese Simplified
+        new CultureInfo("de"), // German [Germany]
+        new CultureInfo("hu"), // Hungarian
+        new CultureInfo("id"), // Indonesian
+        new CultureInfo("it"), // Italian
+        new CultureInfo("ja"), // Japanese
+        new CultureInfo("uk"), // Ukrainian
+        new CultureInfo("zh-CN"), // Chinese (Simplified)
+        new CultureInfo("zh-TW"), // Chinese (Traditional)
+    };
 
-    private static readonly string COVERS_DIR =
-        System.IO.Path.DirectorySeparatorChar + "covers" + System.IO.Path.DirectorySeparatorChar + "cache";
+    private static readonly string DateUpdated = "10/07/2022";
+    private static readonly string DefaultTempDir = Path.Combine(".", "temp");
+    private static readonly string DefaultCoversCacheDir = Path.Combine(".", "covers", "cache");
 
-    private static readonly string MEDIA_DIR =
-        System.IO.Path.DirectorySeparatorChar + "media" + System.IO.Path.DirectorySeparatorChar + "covers";
-
-    private const string INI_FILE = "config.ini";
-    public static IniFile ConfigFile = new IniFile(GET_CURRENT_PATH + System.IO.Path.DirectorySeparatorChar + INI_FILE);
-    private static readonly string PROG_UPDATE = "10/07/2022";
+    public static Form SplashScreen { get; private set; }
 
     //public enum Language
     //{
@@ -41,150 +49,109 @@ internal static class Program
     //    IUKRAINIAN
     //};
 
-    public static CultureInfo[] cultureInfos = new[]
-    {
-        new CultureInfo("en-US"), //English [US]
-        new CultureInfo("pt-BR"), //Portuguese
-        new CultureInfo("ko"), //Korean
-        new CultureInfo("es"), //Spanish [Spain]
-        new CultureInfo("es-MX"), //Spanish [Mexico]
-        new CultureInfo("zh"), //Chinese Simplified
-        new CultureInfo("de"), //German [Germany]
-        new CultureInfo("hu"), //Hungarian
-        new CultureInfo("id"), //Indonesian
-        new CultureInfo("it"), //Italian
-        new CultureInfo("ja"), //Japanese
-        new CultureInfo("uk"), //Ukrainian
-        new CultureInfo("zh-CN"), //Chinese (Simplified)
-        new CultureInfo("zh-TW"), //Chinese (Traditional)
-
-    };
-
-
-    /// <summary>
-    ///     Ponto de entrada principal para o aplicativo.
-    /// </summary>
-    [STAThread]
-    private static void Main()
-    {
-        
-
-        //Pega o nome do processo deste programa
-        var nomeProcesso = Process.GetCurrentProcess().ProcessName;
-        //Busca os processos com este nome que estão em execução
-        var processos = Process.GetProcessesByName(nomeProcesso);
-
-        // TODO: Validate if this is still a problem
-        // We changed the variable that stores the selected language from an int to the culture string, this causes a crash when we try
-        // to call CurrentUICulture = new CultureInfo(0)... etc. So we have to make sure that either they have a working/upated INI file.
-        // Chosen to do this by presenting the user a new LanguagePrompt form, which will also appear upon first launch, If no supported language has been found.
-
-        if (File.Exists("config.ini") && ConfigFile.IniReadBool("SEVERAL", "MultipleInstances") == false && processos.Length > 1)
-        {
-            _ = MessageBox.Show(Resources.CannotOpenTwoInstances, "GameCube Backup Manager",
-                MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            Application.Exit();
-        }
-        Start();
-    }
-
     public static void DefaultConfigSave()
     {
-        var CONFIG_INI_FILE = new IniFile("config.ini");
         // GCBM
-        CONFIG_INI_FILE.IniWriteString("GCBM", "ProgUpdated", PROG_UPDATE);
-        //CONFIG_INI_FILE.IniWriteString("GCBM", "ProgVersion", VERSION());
-        CONFIG_INI_FILE.IniWriteString("GCBM", "ConfigUpdated", DateTime.Now.ToString("dd/MM/yyyy"));
-        CONFIG_INI_FILE.IniWriteString("GCBM", "Language", Resources.GCBM_Language);
-        CONFIG_INI_FILE.IniWriteString("GCBM", "TranslatedBy", Resources.GCBM_TranslatedBy);
-        // General
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "DiscClean", true);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "DiscDelete", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "ExtractZip", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "Extract7z", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "ExtractRar", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "ExtractBZip2", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "ExtractSplitFile", false);
-        CONFIG_INI_FILE.IniWriteBool("GENERAL", "ExtractNwb", false);
-        CONFIG_INI_FILE.IniWriteInt("GENERAL", "FileSize", 0);
-        CONFIG_INI_FILE.IniWriteString("GENERAL", "TemporaryFolder", GET_CURRENT_PATH + TEMP_DIR);
-        // Several
-        CONFIG_INI_FILE.IniWriteInt("SEVERAL", "AppointmentStyle", 0);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "CheckMD5", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "CheckSHA1", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "CheckNotify", true);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "NetVerify", true);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "RecursiveMode", true);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "TemporaryBuffer", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "WindowMaximized", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "DisableSplash", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "Screensaver", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "LoadDatabase", true);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "MultipleInstances", false);
-        CONFIG_INI_FILE.IniWriteBool("SEVERAL", "LaunchedOnce", true);
-        // TransferSystem
-        CONFIG_INI_FILE.IniWriteBool("TRANSFERSYSTEM", "FST", false);
-        CONFIG_INI_FILE.IniWriteBool("TRANSFERSYSTEM", "ScrubFlushSD", false);
-        CONFIG_INI_FILE.IniWriteInt("TRANSFERSYSTEM", "ScrubAlign", 0);
-        CONFIG_INI_FILE.IniWriteString("TRANSFERSYSTEM", "ScrubFormat", "DiscEx");
-        CONFIG_INI_FILE.IniWriteInt("TRANSFERSYSTEM", "ScrubFormatIndex", 1);
-        CONFIG_INI_FILE.IniWriteBool("TRANSFERSYSTEM", "Wipe", false);
-        CONFIG_INI_FILE.IniWriteBool("TRANSFERSYSTEM", "XCopy", true);
-        // Covers
-        CONFIG_INI_FILE.IniWriteBool("COVERS", "DeleteCovers", false);
-        CONFIG_INI_FILE.IniWriteBool("COVERS", "CoverRecursiveSearch", false);
-        CONFIG_INI_FILE.IniWriteBool("COVERS", "TransferCovers", false);
-        CONFIG_INI_FILE.IniWriteBool("COVERS", "WiiFlowCoverUSBLoader", false);
-        CONFIG_INI_FILE.IniWriteBool("COVERS", "GXCoverUSBLoader", true);
-        CONFIG_INI_FILE.IniWriteString("COVERS", "CoverDirectoryCache", GET_CURRENT_PATH + COVERS_DIR);
-        CONFIG_INI_FILE.IniWriteString("COVERS", "WiiFlowCoverDirectoryDisc", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "WiiFlowCoverDirectory2D", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "WiiFlowCoverDirectory3D", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "WiiFlowCoverDirectoryFull", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "GXCoverDirectoryDisc", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "GXCoverDirectory2D", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "GXCoverDirectory3D", "");
-        CONFIG_INI_FILE.IniWriteString("COVERS", "GXCoverDirectoryFull", "");
-        // Titles
-        CONFIG_INI_FILE.IniWriteBool("TITLES", "GameCustomTitles", false);
-        CONFIG_INI_FILE.IniWriteBool("TITLES", "GameTdbTitles", false);
-        CONFIG_INI_FILE.IniWriteBool("TITLES", "GameInternalName", true);
-        CONFIG_INI_FILE.IniWriteBool("TITLES", "GameXmlName", false);
-        CONFIG_INI_FILE.IniWriteString("TITLES", "LocationTitles",
-            "%APP%" + System.IO.Path.DirectorySeparatorChar + "titles.txt");
-        CONFIG_INI_FILE.IniWriteString("TITLES", "LocationCustomTitles",
-            "%APP%" + System.IO.Path.DirectorySeparatorChar + "custom-titles.txt");
-        CONFIG_INI_FILE.IniWriteInt("TITLES", "TitleLanguage", 0);
-        // Dolphin Emulator
-        CONFIG_INI_FILE.IniWriteString("DOLPHIN", "DolphinFolder", "");
-        CONFIG_INI_FILE.IniWriteBool("DOLPHIN", "DolphinDX11", true);
-        CONFIG_INI_FILE.IniWriteBool("DOLPHIN", "DolphinDX12", false);
-        CONFIG_INI_FILE.IniWriteBool("DOLPHIN", "DolphinVKGL", false);
-        CONFIG_INI_FILE.IniWriteBool("DOLPHIN", "DolphinLLE", false);
-        CONFIG_INI_FILE.IniWriteBool("DOLPHIN", "DolphinHLE", true);
-        // Updates
-        CONFIG_INI_FILE.IniWriteBool("UPDATES", "UpdateVerifyStart", false);
-        CONFIG_INI_FILE.IniWriteBool("UPDATES", "UpdateBetaChannel", false);
-        CONFIG_INI_FILE.IniWriteBool("UPDATES", "UpdateFileLog", false);
-        CONFIG_INI_FILE.IniWriteBool("UPDATES", "UpdateServerProxy", false);
-        CONFIG_INI_FILE.IniWriteString("UPDATES", "ServerProxy", "");
-        CONFIG_INI_FILE.IniWriteString("UPDATES", "UserProxy", "");
-        CONFIG_INI_FILE.IniWriteString("UPDATES", "PassProxy", "");
-        CONFIG_INI_FILE.IniWriteInt("UPDATES", "VerificationInterval", 0);
-        // Manager Log
-        CONFIG_INI_FILE.IniWriteInt("MANAGERLOG", "LogLevel", 0);
-        CONFIG_INI_FILE.IniWriteBool("MANAGERLOG", "LogSystemConsole", false);
-        CONFIG_INI_FILE.IniWriteBool("MANAGERLOG", "LogDebugConsole", false);
-        CONFIG_INI_FILE.IniWriteBool("MANAGERLOG", "LogWindow", false);
-        CONFIG_INI_FILE.IniWriteBool("MANAGERLOG", "LogFile", true);
-        // Language
+        ConfigFile.IniWriteString("GCBM", "ProgUpdated", DateUpdated);
+        //ConfigFile.IniWriteString("GCBM", "ProgVersion", VERSION());
+        ConfigFile.IniWriteString("GCBM", "ConfigUpdated", DateTime.Now.ToString("dd/MM/yyyy"));
+        ConfigFile.IniWriteString("GCBM", "Language", Resources.GCBM_Language);
+        ConfigFile.IniWriteString("GCBM", "TranslatedBy", Resources.GCBM_TranslatedBy);
 
-        if(IsTranslated(DetectOSLanguage()))
-            CONFIG_INI_FILE.IniWriteString("LANGUAGE", "ConfigLanguage", DetectOSLanguage());
+        // General
+        ConfigFile.IniWriteBool("GENERAL", "DiscClean", true);
+        ConfigFile.IniWriteBool("GENERAL", "DiscDelete", false);
+        ConfigFile.IniWriteBool("GENERAL", "ExtractZip", false);
+        ConfigFile.IniWriteBool("GENERAL", "Extract7z", false);
+        ConfigFile.IniWriteBool("GENERAL", "ExtractRar", false);
+        ConfigFile.IniWriteBool("GENERAL", "ExtractBZip2", false);
+        ConfigFile.IniWriteBool("GENERAL", "ExtractSplitFile", false);
+        ConfigFile.IniWriteBool("GENERAL", "ExtractNwb", false);
+        ConfigFile.IniWriteInt("GENERAL", "FileSize", 0);
+        ConfigFile.IniWriteString("GENERAL", "TemporaryFolder", DefaultTempDir);
+
+        // Several
+        ConfigFile.IniWriteInt("SEVERAL", "AppointmentStyle", 0);
+        ConfigFile.IniWriteBool("SEVERAL", "CheckMD5", false);
+        ConfigFile.IniWriteBool("SEVERAL", "CheckSHA1", false);
+        ConfigFile.IniWriteBool("SEVERAL", "CheckNotify", true);
+        ConfigFile.IniWriteBool("SEVERAL", "NetVerify", true);
+        ConfigFile.IniWriteBool("SEVERAL", "RecursiveMode", true);
+        ConfigFile.IniWriteBool("SEVERAL", "TemporaryBuffer", false);
+        ConfigFile.IniWriteBool("SEVERAL", "WindowMaximized", false);
+        ConfigFile.IniWriteBool("SEVERAL", "DisableSplash", false);
+        ConfigFile.IniWriteBool("SEVERAL", "Screensaver", false);
+        ConfigFile.IniWriteBool("SEVERAL", "LoadDatabase", true);
+        ConfigFile.IniWriteBool("SEVERAL", "MultipleInstances", false);
+        ConfigFile.IniWriteBool("SEVERAL", "LaunchedOnce", true);
+
+        // TransferSystem
+        ConfigFile.IniWriteBool("TRANSFERSYSTEM", "FST", false);
+        ConfigFile.IniWriteBool("TRANSFERSYSTEM", "ScrubFlushSD", false);
+        ConfigFile.IniWriteInt("TRANSFERSYSTEM", "ScrubAlign", 0);
+        ConfigFile.IniWriteString("TRANSFERSYSTEM", "ScrubFormat", "DiscEx");
+        ConfigFile.IniWriteInt("TRANSFERSYSTEM", "ScrubFormatIndex", 1);
+        ConfigFile.IniWriteBool("TRANSFERSYSTEM", "Wipe", false);
+        ConfigFile.IniWriteBool("TRANSFERSYSTEM", "XCopy", true);
+
+        // Covers
+        ConfigFile.IniWriteBool("COVERS", "DeleteCovers", false);
+        ConfigFile.IniWriteBool("COVERS", "CoverRecursiveSearch", false);
+        ConfigFile.IniWriteBool("COVERS", "TransferCovers", false);
+        ConfigFile.IniWriteBool("COVERS", "WiiFlowCoverUSBLoader", false);
+        ConfigFile.IniWriteBool("COVERS", "GXCoverUSBLoader", true);
+        ConfigFile.IniWriteString("COVERS", "CoverDirectoryCache", DefaultCoversCacheDir);
+        ConfigFile.IniWriteString("COVERS", "WiiFlowCoverDirectoryDisc", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "WiiFlowCoverDirectory2D", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "WiiFlowCoverDirectory3D", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "WiiFlowCoverDirectoryFull", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "GXCoverDirectoryDisc", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "GXCoverDirectory2D", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "GXCoverDirectory3D", string.Empty);
+        ConfigFile.IniWriteString("COVERS", "GXCoverDirectoryFull", string.Empty);
+
+        // Titles
+        ConfigFile.IniWriteBool("TITLES", "GameCustomTitles", false);
+        ConfigFile.IniWriteBool("TITLES", "GameTdbTitles", false);
+        ConfigFile.IniWriteBool("TITLES", "GameInternalName", true);
+        ConfigFile.IniWriteBool("TITLES", "GameXmlName", false);
+        ConfigFile.IniWriteString("TITLES", "LocationTitles", Path.Combine("%APP%", "titles.txt"));
+        ConfigFile.IniWriteString("TITLES", "LocationCustomTitles", Path.Combine("%APP%", "custom-titles.txt"));
+        ConfigFile.IniWriteInt("TITLES", "TitleLanguage", 0);
+
+        // Dolphin Emulator
+        ConfigFile.IniWriteString("DOLPHIN", "DolphinFolder", string.Empty);
+        ConfigFile.IniWriteBool("DOLPHIN", "DolphinDX11", true);
+        ConfigFile.IniWriteBool("DOLPHIN", "DolphinDX12", false);
+        ConfigFile.IniWriteBool("DOLPHIN", "DolphinVKGL", false);
+        ConfigFile.IniWriteBool("DOLPHIN", "DolphinLLE", false);
+        ConfigFile.IniWriteBool("DOLPHIN", "DolphinHLE", true);
+
+        // Updates
+        ConfigFile.IniWriteBool("UPDATES", "UpdateVerifyStart", false);
+        ConfigFile.IniWriteBool("UPDATES", "UpdateBetaChannel", false);
+        ConfigFile.IniWriteBool("UPDATES", "UpdateFileLog", false);
+        ConfigFile.IniWriteBool("UPDATES", "UpdateServerProxy", false);
+        ConfigFile.IniWriteString("UPDATES", "ServerProxy", string.Empty);
+        ConfigFile.IniWriteString("UPDATES", "UserProxy", string.Empty);
+        ConfigFile.IniWriteString("UPDATES", "PassProxy", string.Empty);
+        ConfigFile.IniWriteInt("UPDATES", "VerificationInterval", 0);
+
+        // Manager Log
+        ConfigFile.IniWriteInt("MANAGERLOG", "LogLevel", 0);
+        ConfigFile.IniWriteBool("MANAGERLOG", "LogSystemConsole", false);
+        ConfigFile.IniWriteBool("MANAGERLOG", "LogDebugConsole", false);
+        ConfigFile.IniWriteBool("MANAGERLOG", "LogWindow", false);
+        ConfigFile.IniWriteBool("MANAGERLOG", "LogFile", true);
+
+        // Language
+        if (IsTranslated(DetectOSLanguage()))
+        {
+            ConfigFile.IniWriteString("LANGUAGE", "ConfigLanguage", DetectOSLanguage());
+        }
         else
         {
             LanguagePrompt();
-
         }
     }
 
@@ -193,26 +160,26 @@ internal static class Program
     /// </summary>
     public static bool IsTranslated(string language)
     {
-        foreach (CultureInfo cultureInfo in cultureInfos)
+        foreach (CultureInfo cultureInfo in CultureInfos)
         {
             if (cultureInfo.Name == language)
             {
                 return true;
             }
         }
+
         return false;
     }
 
     public static void LanguagePrompt()
     {
-        frmLanguagePrompt frmPrompt = new frmLanguagePrompt();
-        DialogResult result = frmPrompt.DialogResult;
+        frmLanguagePrompt frmPrompt = new ();
         frmPrompt.ShowDialog();
     }
     #region Detect OS Language
 
     /// <summary>
-    ///     Automatic detection of operating system default language
+    ///     Automatic detection of operating system default language.
     /// </summary>
     public static string DetectOSLanguage()
     {
@@ -222,13 +189,13 @@ internal static class Program
     }
 
     /// <summary>
-    ///     Check the config file to see which language is specified, or default to the OS language if supported, else default to english
+    ///     Check the config file to see which language is specified or default to the OS language if supported, else default to english.
     /// </summary>
     public static void AdjustLanguage(Thread t)
     {
         try
         {
-            if (ConfigFile.IniReadString("LANGUAGE", "ConfigLanguage", "") == "")
+            if (ConfigFile.IniReadString("LANGUAGE", "ConfigLanguage", string.Empty) == string.Empty)
             {
                 var sysLocale = Thread.CurrentThread.CurrentCulture;
                 var sysLang = CultureInfo.CurrentUICulture.Name;
@@ -243,19 +210,19 @@ internal static class Program
             }
             else
             {
-                t.CurrentUICulture = new CultureInfo(ConfigFile.IniReadString("LANGUAGE", "ConfigLanguage", ""));
+                t.CurrentUICulture = new CultureInfo(ConfigFile.IniReadString("LANGUAGE", "ConfigLanguage", string.Empty));
             }
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             if (exception.GetBaseException() is CultureNotFoundException)
             {
-             File.Delete("config.ini");
-             DefaultConfigSave();
+                File.Delete("config.ini");
+                DefaultConfigSave();
             }
         }
     }
-    
+
     //public static void AdjustLanguage(Thread t)
     //{
     //    while (true)
@@ -309,25 +276,34 @@ internal static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        //Show Splash Form
+
         SplashScreen = new frmSplashScreen();
 
         var splashThread = new Thread(() => Application.Run(SplashScreen));
         splashThread.CurrentUICulture = CultureInfo.CurrentCulture;
         splashThread.SetApartmentState(ApartmentState.STA);
         splashThread.Start();
-
     }
 
-    private static void MainForm_LoadCompleted(object sender, EventArgs e)
+    /// <summary>
+    ///     Point of entry for the application.
+    /// </summary>
+    [STAThread]
+    private static void Main()
     {
-        if (SplashScreen != null && !SplashScreen.Disposing && !SplashScreen.IsDisposed)
-            SplashScreen.Invoke(new Action(() => SplashScreen.Close()));
-        //MainForm.TopMost = true;
-        MainForm.Show();
-        MainForm.Activate();
-        //MainForm.TopMost = false;
+        var nomeProcesso = Process.GetCurrentProcess().ProcessName;
+        var processos = Process.GetProcessesByName(nomeProcesso);
+
+        // TODO: Validate if this is still a problem
+        // We changed the variable that stores the selected language from an int to the culture string, this causes a crash when we try
+        // to call CurrentUICulture = new CultureInfo(0)... etc. So we have to make sure that either they have a working/upated INI file.
+        // Chosen to do this by presenting the user a new LanguagePrompt form, which will also appear upon first launch, If no supported language has been found.
+        if (File.Exists("config.ini") && ConfigFile.IniReadBool("SEVERAL", "MultipleInstances") == false && processos.Length > 1)
+        {
+            _ = MessageBox.Show(Resources.CannotOpenTwoInstances, "GameCube Backup Manager", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            Application.Exit();
+        }
+
+        Start();
     }
 }
-
-//Create and Show Main Form

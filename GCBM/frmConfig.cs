@@ -45,7 +45,7 @@ public partial class frmConfig : Form
         tbGeneralTempPath.Text = GET_CURRENT_PATH + TEMP_DIR;
         tbDirectoryCoverCache.Text = GET_CURRENT_PATH + COVERS_DIR;
 
-        foreach (CultureInfo c in Program.cultureInfos)
+        foreach (CultureInfo c in Program.CultureInfos)
         {
             cbLanguage.Items.Add(c.NativeName + " [" + c.Name + "]");
         }
@@ -214,7 +214,7 @@ public partial class frmConfig : Form
         CONFIG_INI_FILE.IniWriteBool("MANAGERLOG", "LogFile", chkManagerLogFile.Checked);
 
         // Language
-        CONFIG_INI_FILE.IniWriteString("LANGUAGE", "ConfigLanguage", Program.cultureInfos[cbLanguage.SelectedIndex].Name);
+        CONFIG_INI_FILE.IniWriteString("LANGUAGE", "ConfigLanguage", Program.CultureInfos[cbLanguage.SelectedIndex].Name);
     }
 
     #endregion

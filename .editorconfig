@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = silent
+
+# SA1633: File should have header
+dotnet_diagnostic.SA1633.severity = silent
+
+# SA1005: Single line comments should begin with single space
+dotnet_diagnostic.SA1005.severity = silent
+
+# SA1611: Element parameters should be documented
+dotnet_diagnostic.SA1611.severity = silent

@@ -2752,9 +2752,13 @@ public partial class frmMain : Form
         //foreach in this.Controls.Results 
         mstripMain.Refresh();
         callback(Resources.SplashFinished, 100);
-        var SplashScreen = Program.SplashScreen;
-        if (SplashScreen != null && !SplashScreen.Disposing && !SplashScreen.IsDisposed)
-            SplashScreen.Invoke(new Action(() => SplashScreen.Close()));
+
+        var splashScreen = Program.SplashScreen;
+        if (splashScreen != null && !splashScreen.Disposing && !splashScreen.IsDisposed)
+        {
+            splashScreen.Invoke(new Action(() => splashScreen.Close()));
+        }
+
         wait(500);
         Show();
 
